@@ -11,9 +11,13 @@ class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable =[ 'title', 'slug', 'content', 'is_published' ];
+    protected $fillable =[ 'title', 'slug', 'content', 'is_published', 'postimg' ];
     protected $casts =['is_published' => 'boolean'];
+    protected $attributes = [
 
+        'image' => null
+
+    ];
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

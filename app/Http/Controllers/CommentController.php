@@ -2,23 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\Comment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\UpdateCommentRequest;
-use App\Models\Post;
 
 class CommentController extends Controller
 {
 
-    public function index($id)
+    public function index(Post $post)
     {
+        return $post->comments()->latest('id')->get();
+    }
+    public function show($id){
+
         $post = Post::find($id);
         if (!$post){
             return response()->json('Post Not Found!');
         }
         return Post::find($id)->comments;
+
     }
 
     public function store(StoreCommentRequest $request, $id)
@@ -41,10 +47,7 @@ class CommentController extends Controller
         if (!$Post){
             return response()->json('Post Not Found!');
         }
-        else {
-            $comment = Post::find($postID)->comments->find($commentID);
-        }
-
+        $comment = Post::find($postID)->comments->find($commentID);
         if (!$comment){
             return response()->json('Comment Not Found!');
         }
@@ -64,14 +67,15 @@ class CommentController extends Controller
         if (!$Post){
             return response()->json('Post Not Found!');
         }
-        else {
-            $comment = Post::find($postID)->comments->find($commentID);
-        }
+
+        $comment = Post::find($postID)->comments->find($commentID);
+
+        //Gate::authorize('delete', $comment);
 
         if (!$comment){
             return response()->json('Comment Not Found!');
         }
-        else if ($comment->user_id != Auth::id()){
+        else if ($comment->user_id != Auth::id() || Auth::id() != $Post->user_id){
             return response()->json('This is not your comment!');
         }
 

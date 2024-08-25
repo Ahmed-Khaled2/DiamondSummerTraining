@@ -15,35 +15,27 @@ class PostController extends Controller
 
     public function index()
     {
-        return Auth::user()->posts;
+        return Post::get();
     }
-
 
     public function store(StorePostRequest $request)
     {
 
         $post = new Post($request->validated());
         $post->user_id = Auth::id();
+
+        if ($request->hasFile('image')){
+        $filename = $request->file('image')->getClientOriginalName();
+        $NewFileName = time().'_'.$filename;
+        $img_path = $request->file('image')->storeAs('public/post_images', $NewFileName);
+        $post->image = $img_path;
+        }
+
         $post->save();
         return $post;
     }
 
-    public function show(Post $post)
-    {
-        if($post->post_owner_id != Auth::id()){
-            abort(403, 'You are not authorized to view this post');
-        }
-        return $post->load(['user:id,name' , 'comments.user:id,name']);
-    }
-
-
-
-    public function showUserPosts($userID)
-    {
-        $post = Post::where('post_owner_id', $userID)->get();
-        if($post == null){
-            return ["message" => "no posts found for this user"];
-        }
+    public function show(Post $post) {
         return $post;
     }
 
@@ -52,17 +44,22 @@ class PostController extends Controller
     {
 
         $post->update($request->validated());
-        return $post;
 
+        if ($request->hasFile('image')){
+            $filename = $request->file('image')->getClientOriginalName();
+            $NewFileName = time().'_'.$filename;
+            $img_path = $request->file('image')->storeAs('public/post_images', $NewFileName);
+            $post->image = $img_path;
+        }
+
+        $post->save();
+         return $post;
     }
 
 
     public function destroy(Post $post)
     {
-
-        if ($post->post_owner_id != Auth::id()) {
-            abort(403, 'You are not authorized to view this post');
-        }
+        Gate::authorize('delete', $post);
         $post->delete();
         return ["message" => "post deleted successfully"];
     }
