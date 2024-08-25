@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\StorePostRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdatePostRequest;
 
 class PostController extends Controller
@@ -46,6 +47,7 @@ class PostController extends Controller
         $post->update($request->validated());
 
         if ($request->hasFile('image')){
+            Storage::delete($post->image);
             $filename = $request->file('image')->getClientOriginalName();
             $NewFileName = time().'_'.$filename;
             $img_path = $request->file('image')->storeAs('public/post_images', $NewFileName);
